@@ -343,11 +343,20 @@ body {
 
 /* ── Page Content ─────────────────────────────────────────── */
 .page-content {
-  padding: 32px 28px;
-  flex:    1;
+  padding:   32px 28px;
+  flex:      1;
   max-width: 1400px;
-  width:   100%;
+  width:     100%;
 }
+
+/* Variante sin scroll — usada en NuevaConsulta para layout 100vh */
+.page-content.page-no-scroll {
+  overflow: hidden;
+  height:   calc(100vh - var(--topbar-height));
+  display:  flex;
+  flex-direction: column;
+}
+
 
 /* ── Page Header ──────────────────────────────────────────── */
 .page-header { margin-bottom: 28px; }
@@ -666,3 +675,162 @@ body {
 .p-datatable .p-datatable-loading-overlay {
   background: rgba(255, 255, 255, 0.7) !important;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   NuevaConsulta — Layout 100vh sin scroll
+   ══════════════════════════════════════════════════════════════ */
+
+/*
+  topbar:         64px  (var --topbar-height)
+  page padding:   32px top + 32px bottom = 64px
+  height total:   100vh - 64px - 64px = calc(100vh - 128px)
+*/
+.nc-layout {
+  display:        flex;
+  flex-direction: column;
+  gap:            12px;
+  height:         calc(100vh - var(--topbar-height) - 64px);
+  overflow:       hidden;
+}
+
+/* Page header */
+.nc-header { flex-shrink: 0; }
+
+.nc-header h1 {
+  font-size:      1.5rem;
+  font-weight:    800;
+  letter-spacing: -0.03em;
+  margin-bottom:  2px;
+  color:          var(--color-text-primary);
+}
+
+.nc-header p {
+  color:     var(--color-text-secondary);
+  font-size: 0.875rem;
+  margin:    0;
+}
+
+/* Fila superior: secciones 1 y 2 lado a lado */
+.nc-top-row {
+  display:    flex;
+  gap:        12px;
+  flex:       0 0 auto;
+}
+
+.nc-top-row > .nc-card { flex: 1; }
+
+/* Sección 3: crece para llenar el espacio restante */
+.nc-section3 {
+  flex:           1 1 0;
+  min-height:     0;
+  display:        flex;
+  flex-direction: column;
+}
+
+.nc-section3-body {
+  display:    flex;
+  gap:        20px;
+  flex:       1;
+  min-height: 0;
+}
+
+/* Cards en este layout no tienen margin-bottom propio */
+.nc-card {
+  margin-bottom: 0 !important;
+  padding:       16px 20px !important;
+}
+
+/* Contenedor de cada campo */
+.nc-field {
+  display:        flex;
+  flex-direction: column;
+}
+
+/* Observaciones se estira para llenar espacio */
+.nc-obs-field {
+  flex:       1;
+  min-height: 0;
+}
+
+/* Botones de acción */
+.nc-actions {
+  display:     flex;
+  justify-content: flex-end;
+  gap:         12px;
+  flex-shrink: 0;
+  padding-bottom: 2px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Inputs altos (doble de la altura estándar)
+   Estándar PrimeReact: ~36px → nuevo: 52px
+   ══════════════════════════════════════════════════════════════ */
+
+/* InputText altura */
+.nc-input.p-inputtext {
+  height:      52px !important;
+  line-height: 52px !important;
+  width:       100%;
+}
+
+/* Textarea para observaciones */
+.nc-textarea.p-inputtextarea {
+  width:      100% !important;
+  flex:       1;
+  height:     100% !important;
+  min-height: 0 !important;
+  resize:     none !important;
+}
+
+/* Dropdown altura */
+.nc-dropdown.p-dropdown {
+  height:      52px !important;
+  width:       100% !important;
+  display:     flex !important;
+  align-items: center !important;
+}
+
+.nc-dropdown.p-dropdown .p-dropdown-label {
+  display:     flex !important;
+  align-items: center !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  line-height: 1 !important;
+}
+
+.nc-dropdown.p-dropdown .p-dropdown-trigger {
+  display:     flex !important;
+  align-items: center !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   IconInput — icono + input SIN superposición
+   ══════════════════════════════════════════════════════════════ */
+
+.icon-input-wrap {
+  position: relative;
+  display:  flex;
+  align-items: center;
+  width:    100%;
+}
+
+.icon-input-icon {
+  position:   absolute;
+  left:       15px;
+  top:        50%;
+  transform:  translateY(-50%);
+  color:      var(--color-text-muted);
+  font-size:  0.9rem;
+  z-index:    1;
+  pointer-events: none;
+  line-height: 1;
+}
+
+/* El InputText dentro del wrapper */
+.icon-input-wrap .p-inputtext.icon-input-field {
+  padding-left: 42px !important;
+  height:       52px !important;
+  line-height:  52px !important;
+  width:        100% !important;
+}
+

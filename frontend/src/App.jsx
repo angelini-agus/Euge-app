@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Suspense, lazy } from 'react'
 import Sidebar from './components/Sidebar'
 import TopBar from './components/TopBar'
@@ -19,13 +19,17 @@ function PageLoader() {
   )
 }
 
-export default function App() {
+function Layout() {
+  const { pathname } = useLocation()
+  // NuevaConsulta usa su propio layout 100vh — no queremos overflow en page-content
+  const noScroll = pathname === '/nueva-consulta' || pathname === '/'
+
   return (
     <div className="app-layout">
       <Sidebar />
       <div className="main-content">
         <TopBar />
-        <main className="page-content">
+        <main className={`page-content${noScroll ? ' page-no-scroll' : ''}`}>
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/"               element={<Navigate to="/nueva-consulta" replace />} />
@@ -39,3 +43,8 @@ export default function App() {
     </div>
   )
 }
+
+export default function App() {
+  return <Layout />
+}
+
