@@ -111,6 +111,26 @@ function AsesorBody({ asesorAsignado }) {
   )
 }
 
+function ObservacionesBody({ observaciones }) {
+  if (!observaciones) return <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+  return (
+    <span
+      title={observaciones}
+      style={{
+        fontSize: '0.85rem',
+        color: 'var(--color-text-secondary)',
+        display: '-webkit-box',
+        WebkitLineClamp: 2,
+        WebkitBoxOrient: 'vertical',
+        overflow: 'hidden',
+        lineHeight: 1.3
+      }}
+    >
+      {observaciones}
+    </span>
+  )
+}
+
 // ── Main Component ─────────────────────────────────────────────────────────────
 
 const EMPTY_FILTROS = { canal: '', asesorAsignado: '', fechaDesde: '', fechaHasta: '' }
@@ -185,7 +205,7 @@ export default function BaseDeDatos() {
       <Toast ref={toast} position="top-right" />
 
       {/* ── Header row ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div className="page-header" style={{ margin: 0 }}>
           <h1>Base de Datos</h1>
           <p>Filtrá, analizá y exportá las consultas recibidas.</p>
@@ -267,7 +287,7 @@ export default function BaseDeDatos() {
         </div>
       </div>
 
-      {/* ── DataTable ── */}
+      {/* ── DataTable Full Width ── */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <DataTable
           value={consultas}
@@ -281,7 +301,7 @@ export default function BaseDeDatos() {
               No se encontraron consultas con los filtros aplicados.
             </div>
           }
-          tableStyle={{ minWidth: '900px' }}
+          tableStyle={{ width: '100%', minWidth: '950px' }}
           scrollable
           removableSort
         >
@@ -290,47 +310,53 @@ export default function BaseDeDatos() {
             header="Fecha"
             sortable
             body={row => <FechaBody fecha={row.fecha} />}
-            style={{ width: '145px', minWidth: '145px' }}
+            style={{ width: '12%', minWidth: '135px' }}
           />
           <Column
             field="canal"
             header="Canal"
             sortable
             body={row => <CanalBody canal={row.canal} />}
-            style={{ width: '135px', minWidth: '135px' }}
+            style={{ width: '11%', minWidth: '125px' }}
           />
           <Column
             field="modelo"
             header="Modelo"
             sortable
             body={row => <ModeloBody modelo={row.modelo} />}
-            style={{ minWidth: '140px' }}
+            style={{ width: '14%', minWidth: '140px' }}
           />
           <Column
             field="nombreCliente"
             header="Cliente"
             sortable
             body={row => <ClienteBody nombreCliente={row.nombreCliente} />}
-            style={{ minWidth: '150px' }}
+            style={{ width: '15%', minWidth: '150px' }}
           />
           <Column
             field="telefono"
             header="Teléfono"
             body={row => <TelefonoBody telefono={row.telefono} />}
-            style={{ width: '155px', minWidth: '155px' }}
+            style={{ width: '12%', minWidth: '135px' }}
           />
           <Column
             field="ciudad"
             header="Ciudad"
             body={row => <span style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>{row.ciudad || '—'}</span>}
-            style={{ minWidth: '120px' }}
+            style={{ width: '11%', minWidth: '110px' }}
           />
           <Column
             field="asesorAsignado"
             header="Asesor"
             sortable
             body={row => <AsesorBody asesorAsignado={row.asesorAsignado} />}
-            style={{ width: '80px', minWidth: '80px', textAlign: 'center' }}
+            style={{ width: '6%', minWidth: '70px', textAlign: 'center' }}
+          />
+          <Column
+            field="observaciones"
+            header="Observaciones"
+            body={row => <ObservacionesBody observaciones={row.observaciones} />}
+            style={{ width: '19%', minWidth: '180px' }}
           />
         </DataTable>
 

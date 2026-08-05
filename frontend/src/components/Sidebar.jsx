@@ -35,18 +35,18 @@ const NAV_GROUPS = [
   },
 ]
 
-function NavItem({ item }) {
+function NavItem({ item, collapsed }) {
   if (item.disabled) {
     return (
       <div
         className="sidebar-nav-item"
         style={{ opacity: 0.38, cursor: 'not-allowed', userSelect: 'none' }}
-        title="Próximamente"
+        title={`${item.label} (Próximamente)`}
       >
         <span className="nav-icon-wrap">
           <i className={item.icon} />
         </span>
-        {item.label}
+        {!collapsed && <span className="nav-label-text">{item.label}</span>}
       </div>
     )
   }
@@ -54,34 +54,48 @@ function NavItem({ item }) {
   return (
     <NavLink
       to={item.to}
+      title={collapsed ? item.label : undefined}
       className={({ isActive }) => `sidebar-nav-item${isActive ? ' active' : ''}`}
     >
       <span className="nav-icon-wrap">
         <i className={item.icon} />
       </span>
-      {item.label}
+      {!collapsed && <span className="nav-label-text">{item.label}</span>}
     </NavLink>
   )
 }
 
-export default function Sidebar() {
+export default function Sidebar({ collapsed, onToggle }) {
   return (
-    <aside className="sidebar">
-      {/* ── Logo ── */}
+    <aside className={`sidebar${collapsed ? ' collapsed' : ''}`}>
+      {/* ── Logo + Toggle Button ── */}
       <div className="sidebar-logo">
-        <span className="sidebar-logo-icon">🚗</span>
-        <span className="sidebar-logo-text">
-          Auto<em>Leads</em>
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span className="sidebar-logo-icon">🚗</span>
+          {!collapsed && (
+            <span className="sidebar-logo-text">
+              Auto<em>Leads</em>
+            </span>
+          )}
+        </div>
+        <button
+          className="btn-toggle-sidebar"
+          onClick={onToggle}
+          title={collapsed ? "Ampliar menú" : "Guardar menú"}
+          aria-label={collapsed ? "Ampliar menú lateral" : "Guardar menú lateral"}
+          type="button"
+        >
+          <i className={collapsed ? "pi pi-chevron-right" : "pi pi-chevron-left"} />
+        </button>
       </div>
 
       {/* ── Navigation ── */}
       <nav className="sidebar-nav">
         {NAV_GROUPS.map(group => (
           <div key={group.section}>
-            <div className="sidebar-section-label">{group.section}</div>
+            {!collapsed && <div className="sidebar-section-label">{group.section}</div>}
             {group.items.map(item => (
-              <NavItem key={item.label} item={item} />
+              <NavItem key={item.label} item={item} collapsed={collapsed} />
             ))}
           </div>
         ))}
@@ -89,14 +103,18 @@ export default function Sidebar() {
 
       {/* ── User Footer ── */}
       <div className="sidebar-footer">
-        <div className="user-avatar">SJ</div>
-        <div className="user-info">
-          <div className="user-name">Sarah Johnson</div>
-          <div className="user-role">Administradora</div>
-        </div>
-        <button className="btn-icon-ghost" title="Cerrar sesión">
-          <i className="pi pi-sign-out" style={{ fontSize: '0.9rem' }} />
-        </button>
+        <div className="user-avatar" title="Sarah Johnson (Administradora)">SJ</div>
+        {!collapsed && (
+          <>
+            <div className="user-info">
+              <div className="user-name">Sarah Johnson</div>
+              <div className="user-role">Administradora</div>
+            </div>
+            <button className="btn-icon-ghost" title="Cerrar sesión" type="button">
+              <i className="pi pi-sign-out" style={{ fontSize: '0.9rem' }} />
+            </button>
+          </>
+        )}
       </div>
     </aside>
   )

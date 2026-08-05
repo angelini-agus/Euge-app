@@ -1,5 +1,5 @@
+import { useState, useEffect, Suspense, lazy } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import { Suspense, lazy } from 'react'
 import Sidebar from './components/Sidebar'
 import TopBar from './components/TopBar'
 
@@ -21,14 +21,26 @@ function PageLoader() {
 
 function Layout() {
   const { pathname } = useLocation()
+  const [collapsed, setCollapsed] = useState(() => {
+    return localStorage.getItem('autoleads_sidebar_collapsed') === 'true'
+  })
+
+  const toggleSidebar = () => {
+    setCollapsed(prev => {
+      const next = !prev
+      localStorage.setItem('autoleads_sidebar_collapsed', String(next))
+      return next
+    })
+  }
+
   // NuevaConsulta usa su propio layout 100vh — no queremos overflow en page-content
   const noScroll = pathname === '/nueva-consulta' || pathname === '/'
 
   return (
     <div className="app-layout">
-      <Sidebar />
-      <div className="main-content">
-        <TopBar />
+      <Sidebar collapsed={collapsed} onToggle={toggleSidebar} />
+      <div className={`main-content${collapsed ? ' collapsed' : ''}`}>
+        <TopBar collapsed={collapsed} onToggle={toggleSidebar} />
         <main className={`page-content${noScroll ? ' page-no-scroll' : ''}`}>
           <Suspense fallback={<PageLoader />}>
             <Routes>
@@ -47,4 +59,3 @@ function Layout() {
 export default function App() {
   return <Layout />
 }
-
