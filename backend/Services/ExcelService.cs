@@ -6,9 +6,31 @@ namespace AutoLeads.Services;
 /// <summary>
 /// Generates Excel (.xlsx) files from a list of Consulta records.
 /// Uses ClosedXML (MIT license, no registration required).
+/// Formats dates accurately into Argentina Timezone (UTC-3).
 /// </summary>
 public class ExcelService
 {
+    private static readonly TimeZoneInfo ArgentinaTimeZone = GetArgentinaTimeZone();
+
+    private static TimeZoneInfo GetArgentinaTimeZone()
+    {
+        try
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById("America/Argentina/Buenos_Aires");
+        }
+        catch
+        {
+            try
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById("Argentina Standard Time");
+            }
+            catch
+            {
+                return TimeZoneInfo.CreateCustomTimeZone("ART", TimeSpan.FromHours(-3), "Argentina Standard Time", "Argentina Standard Time");
+            }
+        }
+    }
+
     public byte[] GenerarExcel(IEnumerable<Consulta> datos)
     {
         using var workbook  = new XLWorkbook();
@@ -35,7 +57,8 @@ public class ExcelService
         int row = 2;
         foreach (var c in datos)
         {
-            ws.Cell(row, 1).Value = c.Fecha.LocalDateTime.ToString("dd/MM/yyyy HH:mm");
+            var fechaLocal = TimeZoneInfo.ConvertTime(c.Fecha, ArgentinaTimeZone);
+            ws.Cell(row, 1).Value = fechaLocal.ToString("dd/MM/yyyy HH:mm");
             ws.Cell(row, 2).Value = c.Canal;
             ws.Cell(row, 3).Value = c.Modelo;
             ws.Cell(row, 4).Value = c.NombreCliente;

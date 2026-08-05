@@ -4,6 +4,7 @@ import apiClient from '../api/client'
 /**
  * Fetches dropdown catalog options from the API once on mount.
  * Returns static lists: canales, modelos, asesores, ciudades.
+ * Prevents memory leaks if unmounted during fetch.
  */
 export function useCatalogos() {
   const [catalogos, setCatalogos] = useState({
@@ -16,14 +17,28 @@ export function useCatalogos() {
   const [error,   setError]   = useState(null)
 
   useEffect(() => {
+    let isMounted = true
+    const controller = new AbortController()
+
     apiClient
-      .get('/api/catalogos')
-      .then(res => setCatalogos(res.data))
-      .catch(err => {
-        console.error('Error cargando catálogos:', err)
-        setError(err)
+      .get('/api/catalogos', { signal: controller.signal })
+      .then(res => {
+        if (isMounted) setCatalogos(res.data)
       })
-      .finally(() => setLoading(false))
+      .catch(err => {
+        if (err.name !== 'CanceledError' && err.name !== 'AbortError' && isMounted) {
+          console.error('Error cargando catálogos:', err)
+          setError(err)
+        }
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false)
+      })
+
+    return () => {
+      isMounted = false
+      controller.abort()
+    }
   }, [])
 
   return { catalogos, loading, error }
@@ -31,6 +46,7 @@ export function useCatalogos() {
 
 /**
  * Fetches and re-fetches consultas whenever any filter changes.
+ * Handles request cancellation (AbortController) to avoid race conditions.
  * @param {object} filtros - { canal, asesorAsignado, fechaDesde, fechaHasta }
  */
 export function useConsultas(filtros) {
@@ -38,7 +54,10 @@ export function useConsultas(filtros) {
   const [loading,   setLoading]   = useState(false)
   const [error,     setError]     = useState(null)
 
-  const cargar = useCallback(() => {
+  useEffect(() => {
+    let isMounted = true
+    const controller = new AbortController()
+
     setLoading(true)
     setError(null)
 
@@ -49,17 +68,26 @@ export function useConsultas(filtros) {
     if (filtros.fechaHasta)     params.append('fechaHasta',     filtros.fechaHasta)
 
     apiClient
-      .get(`/api/consultas?${params}`)
-      .then(res => setConsultas(res.data))
-      .catch(err => {
-        console.error('Error cargando consultas:', err)
-        setError(err)
-        setConsultas([])
+      .get(`/api/consultas?${params}`, { signal: controller.signal })
+      .then(res => {
+        if (isMounted) setConsultas(res.data)
       })
-      .finally(() => setLoading(false))
+      .catch(err => {
+        if (err.name !== 'CanceledError' && err.name !== 'AbortError' && isMounted) {
+          console.error('Error cargando consultas:', err)
+          setError(err)
+          setConsultas([])
+        }
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false)
+      })
+
+    return () => {
+      isMounted = false
+      controller.abort()
+    }
   }, [filtros.canal, filtros.asesorAsignado, filtros.fechaDesde, filtros.fechaHasta])
 
-  useEffect(() => { cargar() }, [cargar])
-
-  return { consultas, loading, error, recargar: cargar }
+  return { consultas, loading, error }
 }

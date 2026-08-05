@@ -47,7 +47,14 @@ export default function NuevaConsulta() {
     const missing = []
     if (!form.canal)              missing.push('Canal de ingreso')
     if (!form.modelo)             missing.push('Modelo de interés')
-    if (!form.telefono?.trim())   missing.push('Teléfono')
+    if (!form.telefono?.trim()) {
+      missing.push('Teléfono')
+    } else {
+      const digits = form.telefono.replace(/\D/g, '')
+      if (digits.length < 7 || digits.length > 15) {
+        missing.push('Teléfono válido (7 a 15 dígitos)')
+      }
+    }
     if (!form.asesorAsignado)     missing.push('Asesor asignado')
     return missing
   }

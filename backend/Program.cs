@@ -1,20 +1,20 @@
 using AutoLeads.Data;
 using AutoLeads.Models;
 using AutoLeads.Services;
+using Microsoft.AspNetCore.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Connection string from environment (Docker injects DATABASE_URL) ──────────
 var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
     ?? builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Host=localhost;Port=5432;Database=autoleads;Username=autoleads;Password=autoleads_pass";
+    ?? "Host=localhost;Port=5433;Database=autoleads;Username=autoleads;Password=autoleads_pass";
 
 // ── Dependency Injection ──────────────────────────────────────────────────────
 builder.Services.AddSingleton<IConsultaRepository>(_ => new ConsultaRepository(connectionString));
 builder.Services.AddSingleton<ExcelService>();
 
-// ── CORS ──────────────────────────────────────────────────────────────────────
-// Allows the Vite dev server (localhost:5173) and any Cloudflare Pages domain
+// ── CORS Configuration ────────────────────────────────────────────────────────
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -23,18 +23,40 @@ builder.Services.AddCors(options =>
             .WithOrigins(
                 "http://localhost:5173",
                 "http://localhost:3000",
+                "http://127.0.0.1:5173",
                 "https://autoleads-crm.pages.dev"
             )
             .SetIsOriginAllowedToAllowWildcardSubdomains()
             .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
             .WithHeaders("Content-Type", "Authorization", "Accept")
+            .WithExposedHeaders("Content-Disposition") // Allows frontend to read filename header
             .AllowCredentials();
     });
 });
 
 var app = builder.Build();
 
-// Order matters: UseCors before MapGet/MapPost
+// ── Global Exception Handling ─────────────────────────────────────────────────
+app.UseExceptionHandler(exceptionHandlerApp =>
+{
+    exceptionHandlerApp.Run(async context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/json";
+
+        var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+        var ex = exceptionHandlerPathFeature?.Error;
+
+        var response = new
+        {
+            error = "Ocurrió un error interno en el servidor.",
+            details = app.Environment.IsDevelopment() ? ex?.Message : null
+        };
+
+        await context.Response.WriteAsJsonAsync(response);
+    });
+});
+
 app.UseCors();
 
 // ── Health check ──────────────────────────────────────────────────────────────
@@ -42,8 +64,6 @@ app.MapGet("/health", () =>
     Results.Ok(new { status = "ok", timestamp = DateTime.UtcNow }));
 
 // ── GET /api/catalogos — Dropdown options ─────────────────────────────────────
-// Returns static lists used to populate form dropdowns.
-// In a production system these would come from DB lookup tables.
 app.MapGet("/api/catalogos", () =>
 {
     return Results.Ok(new
@@ -79,16 +99,27 @@ app.MapGet("/api/consultas", async (
     string?             fechaDesde,
     string?             fechaHasta) =>
 {
-    var filtros = new ConsultaFiltros
+    try
     {
-        Canal          = canal,
-        AsesorAsignado = asesorAsignado,
-        FechaDesde     = DateOnly.TryParse(fechaDesde, out var fd) ? fd : null,
-        FechaHasta     = DateOnly.TryParse(fechaHasta, out var fh) ? fh : null
-    };
+        var filtros = new ConsultaFiltros
+        {
+            Canal          = canal,
+            AsesorAsignado = asesorAsignado,
+            FechaDesde     = DateOnly.TryParse(fechaDesde, out var fd) ? fd : null,
+            FechaHasta     = DateOnly.TryParse(fechaHasta, out var fh) ? fh : null
+        };
 
-    var data = await repo.ListarAsync(filtros);
-    return Results.Ok(data);
+        var data = await repo.ListarAsync(filtros);
+        return Results.Ok(data);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(
+            detail: ex.Message,
+            title: "Error al consultar la base de datos.",
+            statusCode: StatusCodes.Status500InternalServerError
+        );
+    }
 });
 
 // ── POST /api/consultas — Create a new lead ───────────────────────────────────
@@ -102,25 +133,41 @@ app.MapPost("/api/consultas", async (IConsultaRepository repo, CreateConsultaReq
         return Results.BadRequest(new { error = "Canal, Modelo, Telefono y AsesorAsignado son requeridos." });
     }
 
-    var consulta = new Consulta
+    // Phone format validation (must contain between 7 and 15 digits)
+    var digitsOnly = new string(req.Telefono.Where(char.IsDigit).ToArray());
+    if (digitsOnly.Length < 7 || digitsOnly.Length > 15)
     {
-        Fecha          = DateTimeOffset.UtcNow,
-        Canal          = req.Canal.Trim(),
-        Modelo         = req.Modelo.Trim(),
-        NombreCliente  = req.NombreCliente?.Trim() ?? string.Empty,
-        Telefono       = req.Telefono.Trim(),
-        Ciudad         = req.Ciudad?.Trim(),
-        AsesorAsignado = req.AsesorAsignado.Trim(),
-        Observaciones  = req.Observaciones?.Trim()
-    };
+        return Results.BadRequest(new { error = "El número de teléfono debe contener entre 7 y 15 dígitos válidos." });
+    }
 
-    var id = await repo.CrearAsync(consulta);
-    return Results.Created($"/api/consultas/{id}", new { id });
+    try
+    {
+        var consulta = new Consulta
+        {
+            Fecha          = DateTimeOffset.UtcNow,
+            Canal          = req.Canal.Trim(),
+            Modelo         = req.Modelo.Trim(),
+            NombreCliente  = req.NombreCliente?.Trim() ?? string.Empty,
+            Telefono       = req.Telefono.Trim(),
+            Ciudad         = req.Ciudad?.Trim(),
+            AsesorAsignado = req.AsesorAsignado.Trim(),
+            Observaciones  = req.Observaciones?.Trim()
+        };
+
+        var id = await repo.CrearAsync(consulta);
+        return Results.Created($"/api/consultas/{id}", new { id });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(
+            detail: ex.Message,
+            title: "Error al guardar la consulta en la base de datos.",
+            statusCode: StatusCodes.Status500InternalServerError
+        );
+    }
 });
 
 // ── GET /api/consultas/export — Download Excel with current filters ────────────
-// IMPORTANT: this route must be declared BEFORE /api/consultas/{id} if you add
-// one later, otherwise "export" would be matched as an id segment.
 app.MapGet("/api/consultas/export", async (
     IConsultaRepository repo,
     ExcelService         excel,
@@ -129,26 +176,36 @@ app.MapGet("/api/consultas/export", async (
     string?              fechaDesde,
     string?              fechaHasta) =>
 {
-    var filtros = new ConsultaFiltros
+    try
     {
-        Canal          = canal,
-        AsesorAsignado = asesorAsignado,
-        FechaDesde     = DateOnly.TryParse(fechaDesde, out var fd) ? fd : null,
-        FechaHasta     = DateOnly.TryParse(fechaHasta, out var fh) ? fh : null
-    };
+        var filtros = new ConsultaFiltros
+        {
+            Canal          = canal,
+            AsesorAsignado = asesorAsignado,
+            FechaDesde     = DateOnly.TryParse(fechaDesde, out var fd) ? fd : null,
+            FechaHasta     = DateOnly.TryParse(fechaHasta, out var fh) ? fh : null
+        };
 
-    var data     = await repo.ListarAsync(filtros);
-    var bytes    = excel.GenerarExcel(data);
-    var filename = $"consultas_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
+        var data     = await repo.ListarAsync(filtros);
+        var bytes    = excel.GenerarExcel(data);
+        var filename = $"consultas_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
 
-    return Results.File(
-        bytes,
-        contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        fileDownloadName: filename
-    );
+        return Results.File(
+            bytes,
+            contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            fileDownloadName: filename
+        );
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(
+            detail: ex.Message,
+            title: "Error al generar el archivo Excel.",
+            statusCode: StatusCodes.Status500InternalServerError
+        );
+    }
 });
 
 app.Run();
 
-// Make the implicit Program class accessible from integration tests
 public partial class Program { }

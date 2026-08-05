@@ -11,8 +11,9 @@ namespace AutoLeads.Tests;
 /// </summary>
 public class ConsultaRepositoryTests
 {
-    private const string ConnStr =
-        "Host=localhost;Port=5432;Database=autoleads;Username=autoleads;Password=autoleads_pass";
+    private static readonly string ConnStr =
+        Environment.GetEnvironmentVariable("TEST_DATABASE_URL")
+        ?? "Host=localhost;Port=5433;Database=autoleads;Username=autoleads;Password=autoleads_pass";
 
     private readonly ConsultaRepository _repo = new(ConnStr);
 
