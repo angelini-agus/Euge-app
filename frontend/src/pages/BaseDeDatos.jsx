@@ -203,10 +203,10 @@ export default function BaseDeDatos() {
       </div>
 
       {/* ── Filter Bar ── */}
-      <div className="card" style={{ padding: '14px 20px', marginBottom: 14 }}>
+      <div className="card" style={{ padding: '16px 22px', marginBottom: 16 }}>
         <div className="filters-bar">
           <span className="filters-label">
-            <i className="pi pi-filter" />
+            <i className="pi pi-filter" style={{ fontSize: '0.9rem', color: 'var(--color-primary)' }} />
             Filtros:
           </span>
 
@@ -215,7 +215,8 @@ export default function BaseDeDatos() {
             value={filtros.canal}
             options={canalOpts}
             onChange={e => setFiltro('canal', e.value)}
-            style={{ minWidth: 180 }}
+            className="filter-dropdown"
+            style={{ minWidth: 200 }}
             placeholder="Todos los Canales"
           />
 
@@ -224,7 +225,8 @@ export default function BaseDeDatos() {
             value={filtros.asesorAsignado}
             options={asesorOpts}
             onChange={e => setFiltro('asesorAsignado', e.value)}
-            style={{ minWidth: 180 }}
+            className="filter-dropdown"
+            style={{ minWidth: 200 }}
             placeholder="Todos los Asesores"
           />
 
@@ -236,7 +238,8 @@ export default function BaseDeDatos() {
             dateFormat="dd/mm/yy"
             showIcon
             showButtonBar
-            style={{ width: 175 }}
+            className="filter-calendar"
+            style={{ width: 170 }}
           />
 
           <Calendar
@@ -247,15 +250,15 @@ export default function BaseDeDatos() {
             dateFormat="dd/mm/yy"
             showIcon
             showButtonBar
-            style={{ width: 175 }}
+            className="filter-calendar"
+            style={{ width: 170 }}
           />
 
           {hasFilters && (
             <button
-              className="btn-secondary"
+              className="btn-secondary filter-clear-btn"
               onClick={() => setFiltros(EMPTY_FILTROS)}
               type="button"
-              style={{ fontSize: '0.8rem', padding: '7px 12px' }}
             >
               <i className="pi pi-times" />
               Limpiar

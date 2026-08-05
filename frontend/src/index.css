@@ -543,19 +543,93 @@ body {
 .filters-bar {
   display:     flex;
   align-items: center;
-  gap:         10px;
+  gap:         12px;
   flex-wrap:   wrap;
 }
 
 .filters-label {
-  font-size:      0.78rem;
-  font-weight:    600;
+  font-size:      0.82rem;
+  font-weight:    700;
   color:          var(--color-text-secondary);
   display:        flex;
   align-items:    center;
   gap:            6px;
   white-space:    nowrap;
+  margin-right:   2px;
 }
+
+/* Filter Dropdowns — mismo estilo y altura que Ingresar Consulta (46px) */
+.filter-dropdown.p-dropdown {
+  height:        46px !important;
+  display:       flex !important;
+  align-items:   center !important;
+  border-radius: 9px !important;
+  border-color:  var(--color-border) !important;
+  background:    var(--color-white) !important;
+}
+
+.filter-dropdown.p-dropdown .p-dropdown-label {
+  display:        flex !important;
+  align-items:    center !important;
+  height:         46px !important;
+  padding-left:   16px !important;
+  padding-right:  16px !important;
+  font-size:      0.875rem !important;
+  line-height:    1 !important;
+}
+
+.filter-dropdown.p-dropdown .p-dropdown-trigger {
+  display:        flex !important;
+  align-items:    center !important;
+  padding-right:  12px !important;
+}
+
+/* Filter Calendar — input + botón de fecha integrados elegantemente */
+.filter-calendar.p-calendar {
+  display:       inline-flex !important;
+  align-items:   center !important;
+  height:        46px !important;
+}
+
+.filter-calendar.p-calendar .p-inputtext {
+  height:                  46px !important;
+  border-radius:           9px 0 0 9px !important;
+  border-right:            none !important;
+  padding-left:            16px !important;
+  padding-right:           12px !important;
+  font-size:               0.875rem !important;
+  border-color:            var(--color-border) !important;
+}
+
+.filter-calendar.p-calendar .p-datepicker-trigger {
+  height:                  46px !important;
+  border-radius:           0 9px 9px 0 !important;
+  background:              var(--color-body-bg) !important;
+  border:                  1px solid var(--color-border) !important;
+  border-left:             none !important;
+  color:                   var(--color-text-secondary) !important;
+  padding:                 0 14px !important;
+  display:                 flex !important;
+  align-items:             center !important;
+  justify-content:         center !important;
+}
+
+.filter-calendar.p-calendar .p-datepicker-trigger:hover {
+  background:              #E5E7EB !important;
+  color:                   var(--color-text-primary) !important;
+}
+
+/* Botón Limpiar filtros */
+.filter-clear-btn {
+  height:         46px !important;
+  padding:        0 16px !important;
+  font-size:      0.85rem !important;
+  display:        inline-flex !important;
+  align-items:    center !important;
+  gap:            6px !important;
+  border-radius:  9px !important;
+}
+
 
 /* ── DataTable footer ────────────────────────────────────── */
 .table-footer {
