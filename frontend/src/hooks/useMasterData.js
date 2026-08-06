@@ -1,28 +1,35 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import apiClient from '../api/client'
+
+// ── useModelos ─────────────────────────────────────────────────────────────────
 
 export function useModelos() {
   const [modelos, setModelos] = useState([])
   const [loading, setLoading] = useState(true)
   const [error,   setError]   = useState(null)
+  const isMountedRef = useRef(true)
 
-  const cargar = useCallback(() => {
-    let isMounted = true
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => { isMountedRef.current = false }
+  }, [])
+
+  const cargar = useCallback(async () => {
     setLoading(true)
     setError(null)
-
-    apiClient
-      .get('/api/modelos')
-      .then(res => { if (isMounted) setModelos(res.data) })
-      .catch(err => { if (isMounted) setError(err) })
-      .finally(() => { if (isMounted) setLoading(false) })
-
-    return () => { isMounted = false }
+    try {
+      const res = await apiClient.get('/api/modelos')
+      if (isMountedRef.current) setModelos(res.data)
+    } catch (err) {
+      if (isMountedRef.current) setError(err)
+      throw err
+    } finally {
+      if (isMountedRef.current) setLoading(false)
+    }
   }, [])
 
   useEffect(() => {
-    const cleanup = cargar()
-    return cleanup
+    cargar()
   }, [cargar])
 
   const crearModelo = async (nombre) => {
@@ -38,8 +45,9 @@ export function useModelos() {
   }
 
   const alternarEstadoModelo = async (id, activoActual) => {
+    const modelo = modelos.find(m => m.id === id)
     const res = await apiClient.put(`/api/modelos/${id}`, {
-      nombre: modelos.find(m => m.id === id)?.nombre || '',
+      nombre: modelo?.nombre || '',
       activo: !activoActual
     })
     await cargar()
@@ -49,28 +57,35 @@ export function useModelos() {
   return { modelos, loading, error, recargar: cargar, crearModelo, actualizarModelo, alternarEstadoModelo }
 }
 
+// ── useVendedores ──────────────────────────────────────────────────────────────
+
 export function useVendedores() {
   const [vendedores, setVendedores] = useState([])
   const [loading,    setLoading]    = useState(true)
   const [error,      setError]      = useState(null)
+  const isMountedRef = useRef(true)
 
-  const cargar = useCallback(() => {
-    let isMounted = true
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => { isMountedRef.current = false }
+  }, [])
+
+  const cargar = useCallback(async () => {
     setLoading(true)
     setError(null)
-
-    apiClient
-      .get('/api/vendedores')
-      .then(res => { if (isMounted) setVendedores(res.data) })
-      .catch(err => { if (isMounted) setError(err) })
-      .finally(() => { if (isMounted) setLoading(false) })
-
-    return () => { isMounted = false }
+    try {
+      const res = await apiClient.get('/api/vendedores')
+      if (isMountedRef.current) setVendedores(res.data)
+    } catch (err) {
+      if (isMountedRef.current) setError(err)
+      throw err
+    } finally {
+      if (isMountedRef.current) setLoading(false)
+    }
   }, [])
 
   useEffect(() => {
-    const cleanup = cargar()
-    return cleanup
+    cargar()
   }, [cargar])
 
   const crearVendedor = async (nombre) => {
@@ -86,8 +101,9 @@ export function useVendedores() {
   }
 
   const alternarEstadoVendedor = async (id, activoActual) => {
+    const vendedor = vendedores.find(v => v.id === id)
     const res = await apiClient.put(`/api/vendedores/${id}`, {
-      nombre: vendedores.find(v => v.id === id)?.nombre || '',
+      nombre: vendedor?.nombre || '',
       activo: !activoActual
     })
     await cargar()
