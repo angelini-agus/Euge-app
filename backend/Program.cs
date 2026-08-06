@@ -12,6 +12,7 @@ var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
 
 // ── Dependency Injection ──────────────────────────────────────────────────────
 builder.Services.AddSingleton<IConsultaRepository>(_ => new ConsultaRepository(connectionString));
+builder.Services.AddSingleton<IMasterDataRepository>(_ => new MasterDataRepository(connectionString));
 builder.Services.AddSingleton<ExcelService>();
 
 // ── CORS Configuration ────────────────────────────────────────────────────────
@@ -29,7 +30,7 @@ builder.Services.AddCors(options =>
             .SetIsOriginAllowedToAllowWildcardSubdomains()
             .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
             .WithHeaders("Content-Type", "Authorization", "Accept")
-            .WithExposedHeaders("Content-Disposition") // Allows frontend to read filename header
+            .WithExposedHeaders("Content-Disposition")
             .AllowCredentials();
     });
 });
@@ -63,9 +64,12 @@ app.UseCors();
 app.MapGet("/health", () =>
     Results.Ok(new { status = "ok", timestamp = DateTime.UtcNow }));
 
-// ── GET /api/catalogos — Dropdown options ─────────────────────────────────────
-app.MapGet("/api/catalogos", () =>
+// ── GET /api/catalogos — Dynamic Dropdown Options from DB ─────────────────────
+app.MapGet("/api/catalogos", async (IMasterDataRepository masterRepo) =>
 {
+    var modelosActivos = await masterRepo.ListarModelosAsync(soloActivos: true);
+    var vendedoresActivos = await masterRepo.ListarVendedoresAsync(soloActivos: true);
+
     return Results.Ok(new
     {
         canales = new[]
@@ -73,22 +77,94 @@ app.MapGet("/api/catalogos", () =>
             "WhatsApp", "Instagram", "Facebook", "Mercado Libre",
             "Web", "Llamado", "Presencial", "Referido"
         },
-        modelos = new[]
-        {
-            "JOLION H.SUPREME", "JOLION PRO", "H6", "H6 Pro Hev",
-            "C31 BOX", "ORA 03", "ORA Funky Cat",
-            "TANK 300", "TANK 500", "Dargo X"
-        },
-        asesores = new[]
-        {
-            "Diego", "Marcos", "Laura", "Carlos", "Ana", "Martín"
-        },
+        modelos = modelosActivos.Select(m => m.Nombre),
+        asesores = vendedoresActivos.Select(v => v.Nombre),
         ciudades = new[]
         {
             "Rosario", "Córdoba", "Buenos Aires", "Santa Fe",
             "Venado Tuerto", "Rafaela", "San Lorenzo", "Paraná"
         }
     });
+});
+
+// ── Master Data: Modelos CRUD ────────────────────────────────────────────────
+app.MapGet("/api/modelos", async (IMasterDataRepository masterRepo, bool? soloActivos) =>
+{
+    var list = await masterRepo.ListarModelosAsync(soloActivos ?? false);
+    return Results.Ok(list);
+});
+
+app.MapPost("/api/modelos", async (IMasterDataRepository masterRepo, CreateMasterDataItemRequest req) =>
+{
+    if (string.IsNullOrWhiteSpace(req.Nombre))
+        return Results.BadRequest(new { error = "El nombre del modelo es requerido." });
+
+    try
+    {
+        var id = await masterRepo.CrearModeloAsync(req.Nombre);
+        return Results.Created($"/api/modelos/{id}", new { id, nombre = req.Nombre, activo = true });
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(new { error = "No se pudo crear el modelo. Es posible que ya exista.", detail = ex.Message });
+    }
+});
+
+app.MapPut("/api/modelos/{id:int}", async (IMasterDataRepository masterRepo, int id, UpdateMasterDataItemRequest req) =>
+{
+    if (string.IsNullOrWhiteSpace(req.Nombre))
+        return Results.BadRequest(new { error = "El nombre del modelo es requerido." });
+
+    var updated = await masterRepo.ActualizarModeloAsync(id, req.Nombre, req.Activo);
+    if (!updated) return Results.NotFound(new { error = "Modelo no encontrado." });
+    return Results.Ok(new { id, nombre = req.Nombre, activo = req.Activo });
+});
+
+app.MapDelete("/api/modelos/{id:int}", async (IMasterDataRepository masterRepo, int id) =>
+{
+    var updated = await masterRepo.AlternarEstadoModeloAsync(id, activo: false);
+    if (!updated) return Results.NotFound(new { error = "Modelo no encontrado." });
+    return Results.Ok(new { message = "Modelo desactivado (borrado lógico) correctamente." });
+});
+
+// ── Master Data: Vendedores CRUD ─────────────────────────────────────────────
+app.MapGet("/api/vendedores", async (IMasterDataRepository masterRepo, bool? soloActivos) =>
+{
+    var list = await masterRepo.ListarVendedoresAsync(soloActivos ?? false);
+    return Results.Ok(list);
+});
+
+app.MapPost("/api/vendedores", async (IMasterDataRepository masterRepo, CreateMasterDataItemRequest req) =>
+{
+    if (string.IsNullOrWhiteSpace(req.Nombre))
+        return Results.BadRequest(new { error = "El nombre del vendedor es requerido." });
+
+    try
+    {
+        var id = await masterRepo.CrearVendedorAsync(req.Nombre);
+        return Results.Created($"/api/vendedores/{id}", new { id, nombre = req.Nombre, activo = true });
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest(new { error = "No se pudo crear el vendedor. Es posible que ya exista.", detail = ex.Message });
+    }
+});
+
+app.MapPut("/api/vendedores/{id:int}", async (IMasterDataRepository masterRepo, int id, UpdateMasterDataItemRequest req) =>
+{
+    if (string.IsNullOrWhiteSpace(req.Nombre))
+        return Results.BadRequest(new { error = "El nombre del vendedor es requerido." });
+
+    var updated = await masterRepo.ActualizarVendedorAsync(id, req.Nombre, req.Activo);
+    if (!updated) return Results.NotFound(new { error = "Vendedor no encontrado." });
+    return Results.Ok(new { id, nombre = req.Nombre, activo = req.Activo });
+});
+
+app.MapDelete("/api/vendedores/{id:int}", async (IMasterDataRepository masterRepo, int id) =>
+{
+    var updated = await masterRepo.AlternarEstadoVendedorAsync(id, activo: false);
+    if (!updated) return Results.NotFound(new { error = "Vendedor no encontrado." });
+    return Results.Ok(new { message = "Vendedor desactivado (borrado lógico) correctamente." });
 });
 
 // ── GET /api/consultas — List with optional filters ───────────────────────────

@@ -13,10 +13,34 @@ CREATE TABLE IF NOT EXISTS consultas (
     observaciones    TEXT
 );
 
+-- Master Data Tables (with Soft Delete / Borrado Lógico)
+CREATE TABLE IF NOT EXISTS modelos (
+    id     SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) UNIQUE NOT NULL,
+    activo BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS vendedores (
+    id     SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) UNIQUE NOT NULL,
+    activo BOOLEAN NOT NULL DEFAULT TRUE
+);
+
 -- Index for common filter columns
 CREATE INDEX IF NOT EXISTS idx_consultas_canal          ON consultas(canal);
 CREATE INDEX IF NOT EXISTS idx_consultas_asesor         ON consultas(asesor_asignado);
 CREATE INDEX IF NOT EXISTS idx_consultas_fecha          ON consultas(fecha DESC);
+
+-- Master Data Initial Seeds
+INSERT INTO modelos (nombre) VALUES
+    ('JOLION H.SUPREME'), ('JOLION PRO'), ('H6'), ('H6 Pro Hev'),
+    ('C31 BOX'), ('ORA 03'), ('ORA Funky Cat'),
+    ('TANK 300'), ('TANK 500'), ('Dargo X')
+ON CONFLICT (nombre) DO NOTHING;
+
+INSERT INTO vendedores (nombre) VALUES
+    ('Diego'), ('Marcos'), ('Laura'), ('Carlos'), ('Ana'), ('Martín')
+ON CONFLICT (nombre) DO NOTHING;
 
 -- Seed data (Realistic Argentine leads sample)
 INSERT INTO consultas (fecha, canal, modelo, nombre_cliente, telefono, ciudad, asesor_asignado, observaciones)

@@ -20,10 +20,9 @@ const NAV_GROUPS = [
     section: 'ADMINISTRACIÓN',
     items: [
       {
-        to:       null,
-        label:    'Vendedores',
-        icon:     'pi pi-users',
-        disabled: true,
+        to:    '/configuracion',
+        label: 'Configuración Maestros',
+        icon:  'pi pi-cog',
       },
       {
         to:       null,

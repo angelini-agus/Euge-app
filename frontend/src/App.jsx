@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense, lazy } from 'react'
+import { useState, Suspense, lazy } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import TopBar from './components/TopBar'
@@ -6,6 +6,7 @@ import TopBar from './components/TopBar'
 // Lazy load pages for faster initial load
 const NuevaConsulta = lazy(() => import('./pages/NuevaConsulta'))
 const BaseDeDatos   = lazy(() => import('./pages/BaseDeDatos'))
+const Configuracion = lazy(() => import('./pages/Configuracion'))
 
 function PageLoader() {
   return (
@@ -47,6 +48,7 @@ function Layout() {
               <Route path="/"               element={<Navigate to="/nueva-consulta" replace />} />
               <Route path="/nueva-consulta" element={<NuevaConsulta />} />
               <Route path="/base-de-datos"  element={<BaseDeDatos />} />
+              <Route path="/configuracion"  element={<Configuracion />} />
               <Route path="*"               element={<Navigate to="/nueva-consulta" replace />} />
             </Routes>
           </Suspense>
