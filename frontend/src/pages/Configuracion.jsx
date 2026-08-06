@@ -260,24 +260,24 @@ export default function Configuracion() {
         className="p-fluid"
         onHide={() => setModelDialog(false)}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingTop: '10px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <div className="nc-field">
             <label className="field-label field-required" htmlFor="modeloNombre">Nombre del Modelo</label>
             <InputText
               id="modeloNombre"
               value={currentModel.nombre}
               onChange={e => setCurrentModel(prev => ({ ...prev, nombre: e.target.value }))}
+              onKeyDown={e => e.key === 'Enter' && saveModel()}
               placeholder="Ej. TANK 700"
-              className="nc-input"
               autoFocus
             />
           </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
+          <div className="dialog-actions">
             <button className="btn-secondary" onClick={() => setModelDialog(false)} type="button">
               Cancelar
             </button>
             <button className="btn-primary" onClick={saveModel} disabled={saving} type="button">
-              <i className={saving ? "pi pi-spin pi-spinner" : "pi pi-check"} />
+              <i className={saving ? 'pi pi-spin pi-spinner' : 'pi pi-check'} />
               {saving ? 'Guardando...' : 'Guardar Modelo'}
             </button>
           </div>
@@ -293,24 +293,24 @@ export default function Configuracion() {
         className="p-fluid"
         onHide={() => setVendorDialog(false)}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingTop: '10px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <div className="nc-field">
             <label className="field-label field-required" htmlFor="vendedorNombre">Nombre del Asesor</label>
             <InputText
               id="vendedorNombre"
               value={currentVendor.nombre}
               onChange={e => setCurrentVendor(prev => ({ ...prev, nombre: e.target.value }))}
+              onKeyDown={e => e.key === 'Enter' && saveVendor()}
               placeholder="Ej. Santiago Benítez"
-              className="nc-input"
               autoFocus
             />
           </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
+          <div className="dialog-actions">
             <button className="btn-secondary" onClick={() => setVendorDialog(false)} type="button">
               Cancelar
             </button>
             <button className="btn-primary" onClick={saveVendor} disabled={saving} type="button">
-              <i className={saving ? "pi pi-spin pi-spinner" : "pi pi-check"} />
+              <i className={saving ? 'pi pi-spin pi-spinner' : 'pi pi-check'} />
               {saving ? 'Guardando...' : 'Guardar Vendedor'}
             </button>
           </div>

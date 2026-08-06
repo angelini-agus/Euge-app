@@ -1129,5 +1129,111 @@ body {
   }
 }
 
+/* ══════════════════════════════════════════════════════════════
+   PrimeReact Dialog — Estética congruente con el design system
+   ══════════════════════════════════════════════════════════════ */
+
+/* Overlay backdrop */
+.p-dialog-mask {
+  background:     rgba(15, 15, 30, 0.45) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+/* Dialog container */
+.p-dialog {
+  border-radius: var(--radius-card) !important;
+  box-shadow:    0 24px 64px rgba(0, 0, 0, 0.18), 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+  border:        1px solid var(--color-border) !important;
+  font-family:   var(--font-family) !important;
+  overflow:      hidden !important;
+}
+
+/* Header */
+.p-dialog .p-dialog-header {
+  background:    var(--color-white) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+  padding:       20px 24px 16px !important;
+}
+
+.p-dialog .p-dialog-title {
+  font-family:    var(--font-family) !important;
+  font-size:      1.1rem !important;
+  font-weight:    800 !important;
+  letter-spacing: -0.02em !important;
+  color:          var(--color-text-primary) !important;
+}
+
+/* Close button (X) */
+.p-dialog .p-dialog-header-icon {
+  background:      transparent !important;
+  border:          1px solid var(--color-border) !important;
+  border-radius:   8px !important;
+  color:           var(--color-text-secondary) !important;
+  width:           32px !important;
+  height:          32px !important;
+  display:         flex !important;
+  align-items:     center !important;
+  justify-content: center !important;
+  transition:      var(--transition) !important;
+}
+
+.p-dialog .p-dialog-header-icon:hover {
+  background:   var(--color-body-bg) !important;
+  border-color: var(--color-text-secondary) !important;
+  color:        var(--color-text-primary) !important;
+}
+
+.p-dialog .p-dialog-header-icon .p-icon {
+  font-size: 0.75rem !important;
+  width:     0.75rem !important;
+  height:    0.75rem !important;
+}
+
+/* Content area */
+.p-dialog .p-dialog-content {
+  background: var(--color-white) !important;
+  padding:    24px !important;
+}
+
+/* Field label inside dialog */
+.p-dialog .field-label {
+  display:        block;
+  font-size:      0.68rem;
+  font-weight:    700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color:          var(--color-text-secondary);
+  margin-bottom:  8px;
+}
+
+/* InputText inside Dialog — same as nc-input */
+.p-dialog .p-inputtext {
+  height:        52px !important;
+  line-height:   52px !important;
+  padding-left:  18px !important;
+  padding-right: 18px !important;
+  width:         100% !important;
+  border-radius: 9px !important;
+  border:        1px solid var(--color-border) !important;
+  font-family:   var(--font-family) !important;
+  font-size:     0.9rem !important;
+  color:         var(--color-text-primary) !important;
+  background:    var(--color-body-bg) !important;
+  transition:    var(--transition) !important;
+}
+
+.p-dialog .p-inputtext:focus {
+  border-color: var(--color-primary) !important;
+  box-shadow:   0 0 0 3px var(--color-primary-shadow) !important;
+  background:   #FFFFFF !important;
+  outline:      none !important;
+}
+
+.p-dialog .p-inputtext::placeholder {
+  color:      var(--color-text-muted) !important;
+  font-style: italic !important;
+}
+
+
 
 
